@@ -1,5 +1,12 @@
 // aqui vou fazer os eventos de cada item da lista de tarefas
 // aqui vou fazer a função para quando clicar em um item da lista de tarefa a cor de fundo mude para cinza
+
+const listaTarefas = '#lista-tarefas';
+
+const textoTarefas = '#texto-tarefa';
+
+const background = 'rgb(128, 128, 128)';
+
 function changeBackgroundListItem(e) {
   const pegaTamanho = document.querySelectorAll('.itemList').length;
   // esse for é para todos os outros elementos que não estão selecionados mudarem para a cor original
@@ -12,36 +19,36 @@ function changeBackgroundListItem(e) {
 const qtdItemList = document.querySelectorAll('.itemList').length;
 
 // essa variavel armazena a quantidade de duplos cliques que dei em cada item da lista
-let quantosDuploClick = 1;
 
 // aqui to fazendo a função de adicionar risco no texto e retirar
 function changeRiskItem(e) {
   for (let contDesfazerSelecao = 0; contDesfazerSelecao < qtdItemList; contDesfazerSelecao += 1) {
     document.querySelectorAll('.itemList')[contDesfazerSelecao].style.backgroundColor = '';
   }
-  if (quantosDuploClick === 1) {
-    quantosDuploClick += 1;
+  if (e.target.style.textDecoration === 'none') {
     e.target.style.textDecoration = 'line-through';
+
     e.target.classList.add('completed');
+    alert('=1');
   } else {
-    quantosDuploClick = 1;
     e.target.style.textDecoration = 'none';
     e.target.className = 'itemList';
   }
 }
 
 // aqui vou fazer a função de adicionar tarefa na lista
-const atalhoListaTarefas = '#lista-tarefas';
+const atalhoListaTarefas = listaTarefas;
 function adicionarTarefa() {
   const addTarefa = document.createElement('li');
   addTarefa.className = 'itemList';
-  addTarefa.innerHTML = document.querySelector('#texto-tarefa').value;
+  addTarefa.innerHTML = document.querySelector(textoTarefas).value;
+  addTarefa.style.textDecoration = 'none';
   document.querySelector(atalhoListaTarefas).appendChild(addTarefa);
-  document.querySelector('#texto-tarefa').value = '';
+  document.querySelector(textoTarefas).value = '';
   // aqui estou adicionando um evento de click para cada li(item da lista de tarefa
+  addTarefa.addEventListener('dblclick', changeRiskItem);
   addTarefa.addEventListener('click', changeBackgroundListItem);
   // aqui estou adicionando um evento de dblclick para cada li(item da lista de tarefa)
-  addTarefa.addEventListener('dblclick', changeRiskItem);
 }
 
 // aqui vou fazer o evento de clicar no botão adicionar-tarefa
@@ -68,5 +75,106 @@ function apagarFinalizados() {
   }
 }
 
+// função para salvar itens
+function salvarItens() {
+  const arr = [];
+  const sizeTaskList = document.querySelectorAll('.itemList').length;
+  for (let cont = 0; cont < sizeTaskList; cont += 1) {
+    arr.push({
+      tarefa: document.querySelectorAll('.itemList')[cont].innerHTML,
+      textDecoration: document.querySelectorAll('.itemList')[cont].style.textDecoration,
+      className: document.querySelectorAll('.itemList').className,
+    });
+  }
+  localStorage.setItem('tarefas', JSON.stringify(arr));
+}
+
 // aqui vou fazer o evento de apagar itens finalizados
 document.querySelector('#remover-finalizados').addEventListener('click', apagarFinalizados);
+
+// evento para salvar itens
+document.querySelector('#salvar-tarefas').addEventListener('click', salvarItens);
+
+function addClassItemsSaved(itensSavedLocalStorage, cont, addTarefa) {
+  if (itensSavedLocalStorage[cont].textDecoration === 'line-through') {
+    const a = addTarefa;
+    a.className = 'itemList completed';
+  } else {
+    const a = addTarefa;
+    a.className = 'itemList';
+  }
+}
+function LoadLocalStorage() {
+  const itensSavedLocalStorage = JSON.parse(localStorage.getItem('tarefas'));
+  if (itensSavedLocalStorage !== null) {
+    for (let cont = 0; cont < itensSavedLocalStorage.length; cont += 1) {
+      const addTarefa = document.createElement('li');
+      addClassItemsSaved(itensSavedLocalStorage, cont, addTarefa);
+      addTarefa.innerHTML = itensSavedLocalStorage[cont].tarefa;
+      addTarefa.style.textDecoration = itensSavedLocalStorage[cont].textDecoration;
+      document.querySelector(atalhoListaTarefas).appendChild(addTarefa);
+      document.querySelector(textoTarefas).value = '';
+      // aqui estou adicionando um evento de click para cada li(item da lista de tarefa
+      addTarefa.addEventListener('dblclick', changeRiskItem);
+      addTarefa.addEventListener('click', changeBackgroundListItem);
+      // aqui estou adicionando um evento de dblclick para cada li(item da lista de tarefa)
+    }
+  }
+}
+
+function moveUpTask() {
+  const taskList = [...document.querySelector(listaTarefas).children];
+  console.log('111', taskList);
+  console.log(taskList[0].style.backgroundColor === background);
+  // aqui ele pega o elemento selecionado para encontrar a posição no indexof logo abaixo
+  const elementSelected = taskList.find((data) => data
+    .style
+    .backgroundColor === background);
+
+  const selectedElementPosition = taskList.indexOf(elementSelected, 0);
+
+  if (selectedElementPosition > 0) {
+    const aux = taskList[selectedElementPosition - 1];
+    taskList[selectedElementPosition - 1] = taskList[selectedElementPosition];
+    taskList[selectedElementPosition] = aux;
+
+    taskList.forEach((data) => document.querySelector(listaTarefas).appendChild(data));
+  }
+}
+
+function moveDownTask() {
+  const taskList = [...document.querySelector(listaTarefas).children];
+
+  // aqui ele pega o elemento selecionado para encontrar a posição no indexof logo abaixo
+  const elementSelected = taskList.find((data2) => data2
+    .style
+    .backgroundColor === background);
+
+  const selectedElementPosition = taskList.indexOf(elementSelected, 0);
+  if (selectedElementPosition < taskList.length - 1 && selectedElementPosition >= 0) {
+    const aux = taskList[selectedElementPosition + 1];
+    taskList[selectedElementPosition + 1] = taskList[selectedElementPosition];
+    taskList[selectedElementPosition] = aux;
+
+    taskList.forEach((data) => document.querySelector(listaTarefas).appendChild(data));
+  }
+}
+
+function removeSelectedItem(_e) {
+  const taskList = [...document.querySelector(listaTarefas).children];
+
+  // aqui ele pega o elemento selecionado para encontrar a posição no indexof logo abaixo
+  const elementSelected = taskList.find((data3) => data3
+    .style
+    .backgroundColor === background);
+
+  document.querySelector(listaTarefas).removeChild(elementSelected);
+}
+
+document.querySelector('#mover-cima').addEventListener('click', moveUpTask);
+
+document.querySelector('#mover-baixo').addEventListener('click', moveDownTask);
+
+document.querySelector('#remover-selecionado').addEventListener('click', removeSelectedItem);
+
+window.addEventListener('load', LoadLocalStorage);
