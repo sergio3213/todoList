@@ -104,6 +104,7 @@ function addClassItemsSaved(itensSavedLocalStorage, cont, addTarefa) {
     a.className = 'itemList';
   }
 }
+
 function LoadLocalStorage() {
   const itensSavedLocalStorage = JSON.parse(localStorage.getItem('tarefas'));
   if (itensSavedLocalStorage !== null) {
